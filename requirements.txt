@@ -1,0 +1,22 @@
+# --- LangChain core + agent factory (create_agent lives here) ---
+langchain==1.4.1
+
+# --- OpenRouter chat model integration (ChatOpenRouter) ---
+# Dedicated OpenRouter integration.
+langchain-openrouter==0.2.8
+
+# --- LangGraph: provides the checkpointer for short-term memory ---
+# InMemorySaver comes from langgraph.checkpoint.memory
+langgraph==1.2.11
+
+# --- PostgreSQL driver (psycopg 3) ---
+psycopg[binary]==3.3.5
+
+# --- YAML (to store/read the DB schema) ---
+pyyaml==6.0.3
+
+# --- Loads variables from the .env file ---
+python-dotenv==1.2.3
+
+# --- Web UI (Part 6) ---
+streamlit==1.64.0

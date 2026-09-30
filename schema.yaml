@@ -1,0 +1,88 @@
+tables:
+  accounts:
+    columns:
+    - name: account_id
+      nullable: false
+      type: integer
+    - name: name
+      nullable: false
+      type: character varying
+    - name: type
+      nullable: false
+      type: character varying
+    - name: currency
+      nullable: false
+      type: character varying
+    - name: balance
+      nullable: false
+      type: numeric
+    foreign_keys: []
+  customers:
+    columns:
+    - name: customer_id
+      nullable: false
+      type: integer
+    - name: name
+      nullable: false
+      type: character varying
+    - name: email
+      nullable: true
+      type: character varying
+    - name: country
+      nullable: true
+      type: character varying
+    - name: created_at
+      nullable: false
+      type: date
+    foreign_keys: []
+  invoices:
+    columns:
+    - name: invoice_id
+      nullable: false
+      type: integer
+    - name: customer_id
+      nullable: false
+      type: integer
+    - name: issue_date
+      nullable: false
+      type: date
+    - name: due_date
+      nullable: false
+      type: date
+    - name: amount
+      nullable: false
+      type: numeric
+    - name: status
+      nullable: false
+      type: character varying
+    foreign_keys:
+    - customer_id -> customers.customer_id
+  transactions:
+    columns:
+    - name: txn_id
+      nullable: false
+      type: integer
+    - name: account_id
+      nullable: false
+      type: integer
+    - name: customer_id
+      nullable: true
+      type: integer
+    - name: txn_date
+      nullable: false
+      type: date
+    - name: amount
+      nullable: false
+      type: numeric
+    - name: type
+      nullable: false
+      type: character varying
+    - name: category
+      nullable: true
+      type: character varying
+    - name: description
+      nullable: true
+      type: character varying
+    foreign_keys:
+    - account_id -> accounts.account_id
+    - customer_id -> customers.customer_id

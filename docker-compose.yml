@@ -1,0 +1,66 @@
+# Financial SQL Agent: PostgreSQL + one-time setup + Streamlit application.
+# Start: docker compose up --build
+# Stop:  docker compose down
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-agent}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-agentpass}
+      POSTGRES_DB: ${DB_NAME:-financial}
+    ports:
+      # Loopback binding prevents accidental public database exposure.
+      - "${POSTGRES_BIND_HOST:-127.0.0.1}:${POSTGRES_HOST_PORT:-5433}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  setup:
+    build: .
+    command: ["sh", "-c", "python -m src.seed_data && python -m src.extract_schema"]
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-financial}
+      DB_USER: ${DB_USER:-agent}
+      DB_PASSWORD: ${DB_PASSWORD:-agentpass}
+      DB_CONNECT_TIMEOUT: ${DB_CONNECT_TIMEOUT:-10}
+      SCHEMA_PATH: /app/runtime/schema.yaml
+    volumes:
+      - schema_data:/app/runtime
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  app:
+    build: .
+    restart: unless-stopped
+    environment:
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:?OPENROUTER_API_KEY is required}
+      OPENROUTER_MODEL: ${OPENROUTER_MODEL:-nvidia/nemotron-3-ultra-550b-a55b:free}
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-financial}
+      DB_USER: ${DB_USER:-agent}
+      DB_PASSWORD: ${DB_PASSWORD:-agentpass}
+      DB_CONNECT_TIMEOUT: ${DB_CONNECT_TIMEOUT:-10}
+      MAX_RETRIES: ${MAX_RETRIES:-3}
+      SCHEMA_PATH: /app/runtime/schema.yaml
+      PORT: 8501
+    ports:
+      - "${APP_PORT:-8502}:8501"
+    volumes:
+      - schema_data:/app/runtime:ro
+    depends_on:
+      setup:
+        condition: service_completed_successfully
+
+volumes:
+  pgdata:
+  schema_data:
